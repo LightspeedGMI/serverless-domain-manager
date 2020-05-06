@@ -1299,7 +1299,7 @@ describe("Custom Domain Plugin", () => {
       AWS.mock("ApiGatewayV2", "getDomainName", (params, callback) => {
         callback(null, { domainName: params, distributionDomainName: "test_distributed_domain_name" });
       });
-      const plugin = constructPlugin({domainName: "test_domain"});
+      const plugin = constructPlugin({basePath: "test_basepath", domainName: "test_domain"});
       plugin.apigatewayV2 = new aws.ApiGatewayV2();
       plugin.initializeVariables();
 
@@ -1308,6 +1308,8 @@ describe("Custom Domain Plugin", () => {
       expect(consoleOutput[1]).to.contain("Distribution Domain Name");
       expect(consoleOutput[2]).to.contain("test_domain");
       expect(consoleOutput[3]).to.contain("test_distributed_domain_name");
+      expect(consoleOutput[4]).to.contain("Hosted Zone Id");
+      expect(consoleOutput[5]).to.contain("https://test_domain/test_basepath");
     });
 
     afterEach(() => {

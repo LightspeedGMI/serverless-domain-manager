@@ -785,6 +785,7 @@ class ServerlessCustomDomain {
         this.serverless.cli.consoleLog(`  Domain Name: ${domain.givenDomainName}`);
         this.serverless.cli.consoleLog(`  Target Domain: ${domain.domainInfo.domainName}`);
         this.serverless.cli.consoleLog(`  Hosted Zone Id: ${domain.domainInfo.hostedZoneId}`);
+        this.serverless.cli.consoleLog(chalk.yellow("Endpoint") + `: https://${domain.givenDomainName}/${this.serverless.service.custom.customDomain.basePath}`);
     }
 }
 
