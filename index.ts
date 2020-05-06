@@ -555,22 +555,32 @@ class ServerlessCustomDomain {
     }
 
     public async getBasePathMapping(domain: DomainConfig): Promise<AWS.ApiGatewayV2.GetApiMappingResponse> {
-        const params = {
+        let params = {
             DomainName: domain.givenDomainName,
         };
-        try {
-            const mappings = await this.apigatewayV2.getApiMappings(params).promise();
-
-            if (mappings.Items.length === 0) {
-                return;
-            } else {
-                for (const mapping of mappings.Items) {
-                    if (mapping.ApiId === domain.apiId
-                        || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching) ) {
-                        return mapping;
+	      try {
+          	let moreMappings:boolean = true;
+            let mappings;
+            while (moreMappings){
+                mappings = await this.apigatewayV2.getApiMappings(params).promise();
+                if (mappings.Items.length === 0) {
+                  moreMappings = false;
+                } else {
+                    for (const mapping of mappings.Items) {
+                        if (mapping.ApiId === domain.apiId
+                            || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching) ) {
+                            return mapping;
+                        }
                     }
-                }
-            }
+                    if (mappings.hasOwnProperty('NextToken')) {
+                        // there are more
+                        params['NextToken'] = mappings['NextToken'];
+                    }
+                    else{
+                        moreMappings = false;
+                    }
+                 }
+              }
         } catch (err) {
             this.logIfDebug(err, domain.givenDomainName);
             throw new Error(`Error: Unable to get API Mappings for ${domain.givenDomainName}`);

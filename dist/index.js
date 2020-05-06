@@ -524,19 +524,30 @@ class ServerlessCustomDomain {
     }
     getBasePathMapping(domain) {
         return __awaiter(this, void 0, void 0, function* () {
-            const params = {
+            let params = {
                 DomainName: domain.givenDomainName,
             };
             try {
-                const mappings = yield this.apigatewayV2.getApiMappings(params).promise();
-                if (mappings.Items.length === 0) {
-                    return;
-                }
-                else {
-                    for (const mapping of mappings.Items) {
-                        if (mapping.ApiId === domain.apiId
-                            || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching)) {
-                            return mapping;
+                let moreMappings = true;
+                let mappings;
+                while (moreMappings) {
+                    mappings = yield this.apigatewayV2.getApiMappings(params).promise();
+                    if (mappings.Items.length === 0) {
+                        moreMappings = false;
+                    }
+                    else {
+                        for (const mapping of mappings.Items) {
+                            if (mapping.ApiId === domain.apiId
+                                || (mapping.ApiMappingKey === domain.basePath && domain.allowPathMatching)) {
+                                return mapping;
+                            }
+                        }
+                        if (mappings.hasOwnProperty('NextToken')) {
+                            // there are more
+                            params['NextToken'] = mappings['NextToken'];
+                        }
+                        else {
+                            moreMappings = false;
                         }
                     }
                 }
